@@ -1,22 +1,14 @@
-# Table of contents
-# Learn more at https://jupyterbook.org/customize/toc.html
+# Table of contents for Jupyter Book
+# This file should be in notebooks/_toc.yml
 
 format: jb-book
 root: index
 chapters:
   - file: notebook1
   - file: notebook2
-  - file: notebook3
-  # Add more notebooks here
 
-# Alternative: Auto-generate from glob pattern (requires additional setup)
-# You can also organize into parts:
-# parts:
-#   - caption: Data Analysis
-#     chapters:
-#       - file: analysis/notebook1
-#       - file: analysis/notebook2
-#   - caption: Machine Learning
-#     chapters:
-#       - file: ml/model_training
-#       - file: ml/evaluation
+# Notes:
+# - 'root: index' refers to notebooks/index.md
+# - 'file: notebook1' refers to notebooks/notebook1.ipynb
+# - Do NOT include file extensions (.ipynb or .md)
+# - Do NOT include the 'notebooks/' prefix in file paths
