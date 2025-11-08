@@ -1,11 +1,8 @@
-name: Publish Notebooks to GitHub Pages
+name: Publish with Jupyter Book
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'notebooks/**'
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -13,79 +10,35 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-
+      
       - name: Install dependencies
         run: |
-          pip install jupyter nbconvert jupyter-book
-
-      - name: Convert notebooks to HTML
+          pip install jupyter-book
+      
+      - name: Build book
         run: |
-          mkdir -p _site
-          
-          # Convert each notebook
-          for notebook in notebooks/*.ipynb; do
-            jupyter nbconvert --to html "$notebook" --output-dir _site
-          done
-          
-          # Create index page
-          cat > _site/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-              <title>Databricks Notebooks</title>
-              <style>
-                  body { font-family: Arial, sans-serif; margin: 40px; }
-                  h1 { color: #333; }
-                  ul { list-style-type: none; padding: 0; }
-                  li { margin: 10px 0; }
-                  a { color: #0066cc; text-decoration: none; font-size: 18px; }
-                  a:hover { text-decoration: underline; }
-              </style>
-          </head>
-          <body>
-              <h1>Databricks Notebooks</h1>
-              <ul>
-          EOF
-          
-          # Add links to all notebooks
-          for html in _site/*.html; do
-            if [ "$html" != "_site/index.html" ]; then
-              filename=$(basename "$html")
-              echo "    <li><a href='$filename'>$filename</a></li>" >> _site/index.html
-            fi
-          done
-          
-          echo "    </ul></body></html>" >> _site/index.html
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
+          jupyter-book build notebooks --path-output ./_build
+      
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '_site'
-
+          path: '_build/html'
+  
   deploy:
+    needs: build
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
