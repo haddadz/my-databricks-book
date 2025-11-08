@@ -1,0 +1,221 @@
+name: Publish Notebooks (Simple)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install jupyter nbconvert
+
+      - name: Convert notebooks to HTML
+        run: |
+          mkdir -p _site
+          
+          # Create index page
+          cat > _site/index.html << 'HTML'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Databricks Notebooks</title>
+              <style>
+                  * { margin: 0; padding: 0; box-sizing: border-box; }
+                  body {
+                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                      min-height: 100vh;
+                      padding: 2rem;
+                  }
+                  .container {
+                      max-width: 1000px;
+                      margin: 0 auto;
+                      background: white;
+                      border-radius: 20px;
+                      padding: 3rem;
+                      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                  }
+                  h1 {
+                      color: #333;
+                      font-size: 2.5rem;
+                      margin-bottom: 1rem;
+                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                      -webkit-background-clip: text;
+                      -webkit-text-fill-color: transparent;
+                      background-clip: text;
+                  }
+                  .subtitle {
+                      color: #666;
+                      margin-bottom: 2rem;
+                      font-size: 1.1rem;
+                  }
+                  .notebook-grid {
+                      display: grid;
+                      gap: 1rem;
+                      margin-top: 2rem;
+                  }
+                  .notebook-card {
+                      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                      padding: 1.5rem;
+                      border-radius: 12px;
+                      text-decoration: none;
+                      color: #333;
+                      transition: all 0.3s ease;
+                      border: 2px solid transparent;
+                  }
+                  .notebook-card:hover {
+                      transform: translateY(-5px);
+                      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                      border-color: #667eea;
+                  }
+                  .notebook-title {
+                      font-size: 1.3rem;
+                      font-weight: 600;
+                      margin-bottom: 0.5rem;
+                  }
+                  .notebook-icon {
+                      font-size: 2rem;
+                      margin-bottom: 0.5rem;
+                  }
+                  .footer {
+                      margin-top: 3rem;
+                      padding-top: 2rem;
+                      border-top: 2px solid #eee;
+                      text-align: center;
+                      color: #666;
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>📊 Databricks Notebooks</h1>
+                  <p class="subtitle">Published notebooks from our data analytics workspace</p>
+                  <div class="notebook-grid" id="notebooks">
+          HTML
+          
+          # Convert each notebook
+          notebook_found=false
+          for notebook in notebooks/*.ipynb; do
+            if [ -f "$notebook" ]; then
+              notebook_found=true
+              filename=$(basename "$notebook" .ipynb)
+              echo "Converting: $filename"
+              
+              # Convert to HTML (no execution)
+              jupyter nbconvert --to html \
+                --output-dir=_site \
+                --no-input \
+                "$notebook" 2>/dev/null || \
+              jupyter nbconvert --to html \
+                --output-dir=_site \
+                "$notebook"
+              
+              # Add to index
+              cat >> _site/index.html << CARD
+                      <a href="${filename}.html" class="notebook-card">
+                          <div class="notebook-icon">📓</div>
+                          <div class="notebook-title">${filename}</div>
+                      </a>
+          CARD
+            fi
+          done
+          
+          # Close HTML
+          cat >> _site/index.html << 'HTML'
+                  </div>
+                  <div class="footer">
+                      <p>Last updated: <span id="timestamp"></span></p>
+                      <script>
+                          document.getElementById('timestamp').textContent = 
+                              new Date().toLocaleString('en-US', { 
+                                  year: 'numeric', 
+                                  month: 'long', 
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                              });
+                      </script>
+                  </div>
+              </div>
+          </body>
+          </html>
+          HTML
+          
+          if [ "$notebook_found" = false ]; then
+            echo "WARNING: No notebooks found in notebooks/ directory"
+            echo "Creating placeholder message..."
+            cat > _site/index.html << 'HTML'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>No Notebooks Found</title>
+              <style>
+                  body {
+                      font-family: system-ui, -apple-system, sans-serif;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      min-height: 100vh;
+                      margin: 0;
+                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  }
+                  .message {
+                      background: white;
+                      padding: 3rem;
+                      border-radius: 20px;
+                      text-align: center;
+                      max-width: 500px;
+                  }
+                  h1 { color: #333; }
+                  p { color: #666; margin: 1rem 0; }
+              </style>
+          </head>
+          <body>
+              <div class="message">
+                  <h1>📓 No Notebooks Found</h1>
+                  <p>Add your .ipynb files to the <code>notebooks/</code> directory and push to see them here.</p>
+              </div>
+          </body>
+          </html>
+          HTML
+          fi
+          
+          echo ""
+          echo "Site contents:"
+          ls -lah _site/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
