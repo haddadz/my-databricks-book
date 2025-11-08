@@ -1,19 +1,19 @@
-name: Deploy Jupyter Book to GitHub Pages
+#name: Deploy Jupyter Book to GitHub Pages
 
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:   # manual trigger from UI
+#on:
+#  push:
+#    branches: [ main ]
+#  workflow_dispatch:   # manual trigger from UI
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write      # needed for checkout & push
-      pages: write
-      id-token: write
+#jobs:
+#  build-and-deploy:
+#    runs-on: ubuntu-latest
+#    permissions:
+#      contents: write      # needed for checkout & push
+#      pages: write
+#      id-token: write
 
-    steps:
+#    steps:
       # -------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
