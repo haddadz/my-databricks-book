@@ -1,5 +1,22 @@
+# Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+
 format: jb-book
-root: intro
+root: index
 chapters:
   - file: notebook1
   - file: notebook2
+  - file: notebook3
+  # Add more notebooks here
+
+# Alternative: Auto-generate from glob pattern (requires additional setup)
+# You can also organize into parts:
+# parts:
+#   - caption: Data Analysis
+#     chapters:
+#       - file: analysis/notebook1
+#       - file: analysis/notebook2
+#   - caption: Machine Learning
+#     chapters:
+#       - file: ml/model_training
+#       - file: ml/evaluation
