@@ -1,0 +1,15 @@
+title: Databricks Notebooks
+author: Your Name
+logo: logo.png  # optional
+
+execute:
+  execute_notebooks: off  # Don't re-execute notebooks
+
+html:
+  use_repository_button: true
+  use_issues_button: true
+  home_page_in_navbar: true
+
+repository:
+  url: https://github.com/your-username/your-repo
+  branch: main
