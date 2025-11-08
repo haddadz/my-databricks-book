@@ -1,4 +1,4 @@
-name: Publish Notebooks to GitHub Pages
+name: Foolproof - Publish Notebooks to GitHub Pages
 
 on:
   push:
