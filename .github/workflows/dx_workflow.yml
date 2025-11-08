@@ -1,0 +1,75 @@
+name: Debug Build Issue
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install jupyter-book pyyaml
+
+      - name: Show repository structure
+        run: |
+          echo "=== Repository Structure ==="
+          tree -L 3 || find . -type f -o -type d | head -50
+
+      - name: Check notebooks directory
+        run: |
+          echo "=== Notebooks Directory ==="
+          ls -la notebooks/ 2>/dev/null || echo "notebooks/ directory does not exist"
+          
+          echo ""
+          echo "=== Notebook files ==="
+          find notebooks -name "*.ipynb" 2>/dev/null || echo "No .ipynb files found"
+
+      - name: Attempt to build
+        continue-on-error: true
+        run: |
+          echo "=== Attempting Jupyter Book build ==="
+          jupyter-book build notebooks --verbose 2>&1 | tee build.log
+          
+          echo ""
+          echo "=== Build exit code: $? ==="
+
+      - name: Show build log
+        if: always()
+        run: |
+          echo "=== Build Log ==="
+          cat build.log 2>/dev/null || echo "No build log found"
+
+      - name: Check what was created
+        if: always()
+        run: |
+          echo "=== Checking for _build directory ==="
+          ls -la notebooks/_build/ 2>/dev/null || echo "_build does not exist"
+          
+          echo ""
+          echo "=== Full directory tree after build ==="
+          find notebooks -type d 2>/dev/null || echo "Cannot find notebooks directory"
+          
+          echo ""
+          echo "=== All files in notebooks ==="
+          find notebooks -type f 2>/dev/null | head -30
+
+      - name: Upload build artifacts for inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-debug
+          path: |
+            notebooks/
+            build.log
+          if-no-files-found: warn
