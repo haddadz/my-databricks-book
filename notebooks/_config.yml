@@ -62,5 +62,5 @@ sphinx:
   config:
     html_theme: sphinx_book_theme
     html_theme_options:
-      repository_url: https://github.com/yhaddadz/my-databricks-book
+      repository_url: https://github.com/haddadz/my-databricks-book
       use_repository_button: true
