@@ -1,15 +1,66 @@
+# Book settings
 title: Databricks Notebooks
 author: Your Name
-logo: logo.png  # optional
+logo: ""
 
+# Force re-execution of notebooks on each build
 execute:
-  execute_notebooks: off  # Don't re-execute notebooks
+  execute_notebooks: cache  # Options: auto, cache, force, off
+  cache: ""
+  exclude_patterns:
+    - '_build'
+    - 'Thumbs.db'
+    - '.DS_Store'
+  timeout: 600
+  allow_errors: false
 
+# Parse and render settings
+parse:
+  myst_enable_extensions:
+    - colon_fence
+    - dollarmath
+    - linkify
+    - substitution
+    - tasklist
+
+# HTML-specific settings
 html:
+  favicon: ""
+  use_edit_page_button: false
   use_repository_button: true
   use_issues_button: true
+  use_multitoc_numbering: true
+  extra_footer: ""
+  google_analytics_id: ""
   home_page_in_navbar: true
+  baseurl: ""
+  comments:
+    hypothesis: false
+    utterances: false
 
+# LaTeX settings
+latex:
+  latex_engine: pdflatex
+
+# Launch button settings
+launch_buttons:
+  notebook_interface: classic
+  binderhub_url: ""
+  jupyterhub_url: ""
+  thebe: false
+
+# Repository settings
 repository:
-  url: https://github.com/your-username/your-repo
+  url: https://github.com/haddadz/my-databricks-book
+  path_to_book: notebooks
   branch: main
+
+# Sphinx settings
+sphinx:
+  extra_extensions:
+    - sphinx_inline_tabs
+  config:
+    html_theme: sphinx_book_theme
+    html_theme_options:
+      repository_url: https://github.com/yhaddadz/my-databricks-book
+      use_repository_button: true
