@@ -1,4 +1,4 @@
-name: Publish Notebooks (Simple)
+name: Publish Notebooks to GitHub Pages
 
 on:
   push:
@@ -16,198 +16,276 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
-          pip install jupyter nbconvert
+          pip install --upgrade pip
+          pip install jupyter-book pyyaml nbconvert
 
-      - name: Convert notebooks to HTML
+      - name: Check and setup notebooks directory
         run: |
-          mkdir -p _site
+          # Ensure notebooks directory exists
+          mkdir -p notebooks
           
-          # Create index page
-          cat > _site/index.html << 'HTML'
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Databricks Notebooks</title>
-              <style>
-                  * { margin: 0; padding: 0; box-sizing: border-box; }
-                  body {
-                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                      min-height: 100vh;
-                      padding: 2rem;
-                  }
-                  .container {
-                      max-width: 1000px;
-                      margin: 0 auto;
-                      background: white;
-                      border-radius: 20px;
-                      padding: 3rem;
-                      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                  }
-                  h1 {
-                      color: #333;
-                      font-size: 2.5rem;
-                      margin-bottom: 1rem;
-                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                      -webkit-background-clip: text;
-                      -webkit-text-fill-color: transparent;
-                      background-clip: text;
-                  }
-                  .subtitle {
-                      color: #666;
-                      margin-bottom: 2rem;
-                      font-size: 1.1rem;
-                  }
-                  .notebook-grid {
-                      display: grid;
-                      gap: 1rem;
-                      margin-top: 2rem;
-                  }
-                  .notebook-card {
-                      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-                      padding: 1.5rem;
-                      border-radius: 12px;
-                      text-decoration: none;
-                      color: #333;
-                      transition: all 0.3s ease;
-                      border: 2px solid transparent;
-                  }
-                  .notebook-card:hover {
-                      transform: translateY(-5px);
-                      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                      border-color: #667eea;
-                  }
-                  .notebook-title {
-                      font-size: 1.3rem;
-                      font-weight: 600;
-                      margin-bottom: 0.5rem;
-                  }
-                  .notebook-icon {
-                      font-size: 2rem;
-                      margin-bottom: 0.5rem;
-                  }
-                  .footer {
-                      margin-top: 3rem;
-                      padding-top: 2rem;
-                      border-top: 2px solid #eee;
-                      text-align: center;
-                      color: #666;
-                  }
-              </style>
-          </head>
-          <body>
-              <div class="container">
-                  <h1>📊 Databricks Notebooks</h1>
-                  <p class="subtitle">Published notebooks from our data analytics workspace</p>
-                  <div class="notebook-grid" id="notebooks">
-          HTML
+          # Check for notebooks
+          notebook_count=$(find notebooks -maxdepth 1 -name "*.ipynb" -not -name ".*" 2>/dev/null | wc -l)
+          echo "Found $notebook_count notebook(s)"
           
-          # Convert each notebook
-          notebook_found=false
-          for notebook in notebooks/*.ipynb; do
-            if [ -f "$notebook" ]; then
-              notebook_found=true
-              filename=$(basename "$notebook" .ipynb)
-              echo "Converting: $filename"
-              
-              # Convert to HTML (no execution)
-              jupyter nbconvert --to html \
-                --output-dir=_site \
-                --no-input \
-                "$notebook" 2>/dev/null || \
-              jupyter nbconvert --to html \
-                --output-dir=_site \
-                "$notebook"
-              
-              # Add to index
-              cat >> _site/index.html << CARD
-                      <a href="${filename}.html" class="notebook-card">
-                          <div class="notebook-icon">📓</div>
-                          <div class="notebook-title">${filename}</div>
-                      </a>
-          CARD
+          if [ "$notebook_count" -eq 0 ]; then
+            echo "WARNING: No notebooks found. Creating a sample notebook..."
+            cat > notebooks/sample.ipynb << 'NOTEBOOK_EOF'
+          {
+           "cells": [
+            {
+             "cell_type": "markdown",
+             "metadata": {},
+             "source": [
+              "# Sample Notebook\n",
+              "\n",
+              "This is a placeholder. Replace with your actual Databricks notebooks."
+             ]
+            },
+            {
+             "cell_type": "code",
+             "execution_count": null,
+             "metadata": {},
+             "outputs": [],
+             "source": [
+              "print('Hello from Databricks!')\n",
+              "print('Add your notebooks to the notebooks/ directory')"
+             ]
+            }
+           ],
+           "metadata": {
+            "kernelspec": {
+             "display_name": "Python 3",
+             "language": "python",
+             "name": "python3"
+            },
+            "language_info": {
+             "name": "python",
+             "version": "3.10.0"
+            }
+           },
+           "nbformat": 4,
+           "nbformat_minor": 4
+          }
+          NOTEBOOK_EOF
+          fi
+          
+          # List what we have
+          echo "Notebooks directory contents:"
+          ls -lah notebooks/
+
+      - name: Create Jupyter Book configuration
+        run: |
+          # Create _config.yml
+          cat > notebooks/_config.yml << 'CONFIG_EOF'
+          title: Databricks Notebooks
+          author: Data Team
+          logo: ""
+          
+          # Execution settings
+          execute:
+            execute_notebooks: 'off'
+            cache: ""
+            timeout: 600
+            allow_errors: true
+          
+          # Parse settings
+          parse:
+            myst_enable_extensions:
+              - colon_fence
+              - dollarmath
+              - linkify
+          
+          # HTML settings
+          html:
+            use_repository_button: true
+            use_issues_button: false
+            use_multitoc_numbering: false
+            home_page_in_navbar: true
+          
+          # Repository settings  
+          repository:
+            url: https://github.com/${{ github.repository }}
+            path_to_book: notebooks
+            branch: main
+          
+          # Sphinx settings
+          sphinx:
+            config:
+              html_theme: sphinx_book_theme
+              html_show_copyright: false
+          CONFIG_EOF
+          
+          echo "Created _config.yml"
+
+      - name: Create index page
+        run: |
+          cat > notebooks/index.md << 'INDEX_EOF'
+          # Databricks Notebooks
+          
+          Welcome to our collection of Databricks notebooks published via GitHub Pages.
+          
+          ## Navigation
+          
+          Use the sidebar to browse available notebooks.
+          
+          ## About
+          
+          These notebooks are automatically published from our Databricks workspace using Jupyter Book and GitHub Actions.
+          
+          ---
+          
+          *Last updated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')*
+          INDEX_EOF
+          
+          echo "Created index.md"
+
+      - name: Generate table of contents
+        run: |
+          python3 << 'PYTHON_EOF'
+          import yaml
+          from pathlib import Path
+          
+          notebooks_dir = Path('notebooks')
+          
+          # Find all notebooks (exclude hidden files and index)
+          notebooks = sorted([
+              f.stem for f in notebooks_dir.glob('*.ipynb')
+              if not f.name.startswith(('.', '_')) and f.stem != 'index'
+          ])
+          
+          print(f"Generating TOC with {len(notebooks)} notebook(s):")
+          for nb in notebooks:
+              print(f"  • {nb}")
+          
+          # Create table of contents
+          if notebooks:
+              toc_data = {
+                  'format': 'jb-book',
+                  'root': 'index',
+                  'chapters': [{'file': nb} for nb in notebooks]
+              }
+          else:
+              # Minimal TOC with just the index
+              toc_data = {
+                  'format': 'jb-book', 
+                  'root': 'index'
+              }
+          
+          # Write TOC file
+          toc_file = notebooks_dir / '_toc.yml'
+          with open(toc_file, 'w') as f:
+              yaml.dump(toc_data, f, default_flow_style=False, sort_keys=False)
+          
+          print(f"\nWrote {toc_file}")
+          print("Contents:")
+          print(toc_file.read_text())
+          PYTHON_EOF
+
+      - name: Validate structure
+        run: |
+          echo "Validating Jupyter Book structure..."
+          
+          # Check required files
+          for file in notebooks/_config.yml notebooks/_toc.yml notebooks/index.md; do
+            if [ -f "$file" ]; then
+              echo "✓ $file"
+            else
+              echo "✗ Missing: $file"
+              exit 1
             fi
           done
           
-          # Close HTML
-          cat >> _site/index.html << 'HTML'
-                  </div>
-                  <div class="footer">
-                      <p>Last updated: <span id="timestamp"></span></p>
-                      <script>
-                          document.getElementById('timestamp').textContent = 
-                              new Date().toLocaleString('en-US', { 
-                                  year: 'numeric', 
-                                  month: 'long', 
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                              });
-                      </script>
-                  </div>
-              </div>
-          </body>
-          </html>
-          HTML
+          echo ""
+          echo "Structure validation passed!"
+
+      - name: Build Jupyter Book
+        run: |
+          echo "Building Jupyter Book..."
+          echo ""
           
-          if [ "$notebook_found" = false ]; then
-            echo "WARNING: No notebooks found in notebooks/ directory"
-            echo "Creating placeholder message..."
-            cat > _site/index.html << 'HTML'
-          <!DOCTYPE html>
-          <html>
-          <head>
-              <title>No Notebooks Found</title>
-              <style>
-                  body {
-                      font-family: system-ui, -apple-system, sans-serif;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      min-height: 100vh;
-                      margin: 0;
-                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                  }
-                  .message {
-                      background: white;
-                      padding: 3rem;
-                      border-radius: 20px;
-                      text-align: center;
-                      max-width: 500px;
-                  }
-                  h1 { color: #333; }
-                  p { color: #666; margin: 1rem 0; }
-              </style>
-          </head>
-          <body>
-              <div class="message">
-                  <h1>📓 No Notebooks Found</h1>
-                  <p>Add your .ipynb files to the <code>notebooks/</code> directory and push to see them here.</p>
-              </div>
-          </body>
-          </html>
-          HTML
+          # Build (remove --verbose and --all flags for compatibility)
+          jupyter-book build notebooks 2>&1 | tee build.log
+          
+          build_status=${PIPESTATUS[0]}
+          echo ""
+          echo "Build exit status: $build_status"
+          
+          if [ $build_status -ne 0 ]; then
+            echo "ERROR: Jupyter Book build failed!"
+            echo "=== Build Log ==="
+            cat build.log
+            exit 1
           fi
           
+          echo "✓ Build completed successfully"
+
+      - name: Verify build output exists
+        run: |
+          echo "Verifying build output..."
+          
+          # Check for build directory
+          if [ ! -d "notebooks/_build" ]; then
+            echo "ERROR: _build directory not created"
+            exit 1
+          fi
+          
+          # Check for html output
+          if [ ! -d "notebooks/_build/html" ]; then
+            echo "ERROR: _build/html directory not created"
+            echo "Directory structure:"
+            find notebooks/_build -type d
+            exit 1
+          fi
+          
+          # Check for index.html
+          if [ ! -f "notebooks/_build/html/index.html" ]; then
+            echo "ERROR: index.html not generated"
+            echo "HTML directory contents:"
+            ls -la notebooks/_build/html/
+            exit 1
+          fi
+          
+          echo "✓ Build output verified"
+          echo ""
+          echo "Generated files:"
+          ls -lah notebooks/_build/html/ | head -20
+
+      - name: Prepare deployment
+        run: |
+          echo "Preparing site for deployment..."
+          
+          # Create _site directory
+          mkdir -p _site
+          
+          # Copy built HTML
+          cp -r notebooks/_build/html/* _site/
+          
+          # Verify
+          if [ ! -f "_site/index.html" ]; then
+            echo "ERROR: Failed to copy files to _site"
+            exit 1
+          fi
+          
+          echo "✓ Deployment preparation complete"
           echo ""
           echo "Site contents:"
-          ls -lah _site/
+          ls -lah _site/ | head -20
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -217,5 +295,14 @@ jobs:
         with:
           path: '_site'
 
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
