@@ -35,15 +35,42 @@ jobs:
           pip install jupyter-book
           pip install -r requirements.txt || echo "No requirements.txt found"
 
-      - name: Build Jupyter Book
+      - name: Verify structure
         run: |
-          # Build the book - output goes to notebooks/_build by default
-          jupyter-book build notebooks
+          echo "=== Notebooks directory ==="
+          ls -la notebooks/
+          echo ""
+          echo "=== Config file ==="
+          cat notebooks/_config.yml
+          echo ""
+          echo "=== TOC file ==="
+          cat notebooks/_toc.yml
 
-      - name: Copy build output to _site
+      - name: Build Jupyter Book from root
+        run: |
+          # Build from repository root, specifying notebooks as the path
+          jupyter-book build ./notebooks
+          
+          # Check if build succeeded
+          if [ ! -d "notebooks/_build/html" ]; then
+            echo "ERROR: Build did not create _build/html directory"
+            echo "Checking what was created:"
+            find notebooks -type d
+            exit 1
+          fi
+          
+          echo "✓ Build successful"
+          echo ""
+          echo "Built files:"
+          ls -la notebooks/_build/html/ | head -20
+
+      - name: Prepare site
         run: |
           mkdir -p _site
           cp -r notebooks/_build/html/* _site/
+          
+          echo "✓ Site prepared"
+          ls -la _site/ | head -10
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
