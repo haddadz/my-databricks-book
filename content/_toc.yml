@@ -6,7 +6,7 @@ format: jb-book
 root: index.md
 
 chapters:
-  - file: your-notebook
+- file: your-notebook
 
 # Notes:
 # - 'root: index' refers to notebooks/index.md
