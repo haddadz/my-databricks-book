@@ -1,0 +1,14 @@
+# Table of contents for Jupyter Book
+# This file should be in notebooks/_toc.yml
+
+format: jb-book
+root: index
+chapters:
+  - file: index
+  - file: your-notebook
+
+# Notes:
+# - 'root: index' refers to notebooks/index.md
+# - 'file: notebook1' refers to notebooks/notebook1.ipynb
+# - Do NOT include file extensions (.ipynb or .md)
+# - Do NOT include the 'notebooks/' prefix in file paths
