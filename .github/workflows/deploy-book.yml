@@ -33,7 +33,7 @@ jobs:
       # -------------------------------------------------
       - name: Build the book
         run: |
-          jupyter-book build content --all --output-dir=./_build/html
+          jupyter-book build content --all --path-output=./_build/html
 
       # -------------------------------------------------
       - name: Deploy to GitHub Pages
