@@ -7,7 +7,6 @@ root: index.md
 
 chapters:
 - file: your-notebook # You can omit the extension (.ipynb or .md)
-  title: Chapter 1: Getting Started
 
 # Notes:
 # - 'root: index' refers to notebooks/index.md
