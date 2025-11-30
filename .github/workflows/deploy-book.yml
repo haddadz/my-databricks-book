@@ -36,6 +36,11 @@ jobs:
           jupyter-book build content --all --path-output=./_build/html
 
       # -------------------------------------------------
+      - name: Disable Jekyll
+        run: |
+          touch ./_build/html/.nojekyll
+
+      # -------------------------------------------------
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
