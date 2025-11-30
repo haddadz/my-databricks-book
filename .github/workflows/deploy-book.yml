@@ -12,6 +12,17 @@ jobs:
 
     steps:
       # -------------------------------------------------
+      - name: Get current time
+        uses: josStorer/get-current-time@v2
+        id: current-time
+      # -------------------------------------------------
+      - name: Invoke build hook
+        uses: distributhor/workflow-webhook@v2
+        env:
+          webhook_url: https://cndr.railtown.ai/webhooks/github/a108470496d44abc912aa8f21ecb6c9a/builds/
+          webhook_secret: a108470496d44abc912aa8f21ecb6c9a
+          data: '{ "ProjectId":"c32f9484-4ad2-405d-bf94-09c1bcc245de","Name":"{BuildNumber}","CommitId":"${{ github.sha }}","DateCreatedAtSource":"${{ steps.current-time.outputs.time }}"}'
+      # -------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -47,3 +58,10 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./content/_build/html
           force_orphan: true   # clean gh-pages branch each run
+      # -------------------------------------------------
+      - name: Invoke deployment hook
+        uses: distributhor/workflow-webhook@v2
+        env:
+          webhook_url: https://cndr.railtown.ai/webhooks/github/a108470496d44abc912aa8f21ecb6c9a/deployments/
+          webhook_secret: a108470496d44abc912aa8f21ecb6c9a
+          data: '{ "BuildName":"{BuildNumber}","EnvironmentId":"daad6a47-16b3-45cb-bf4d-f2e1f2758fd3" }'
