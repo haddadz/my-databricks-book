@@ -2,9 +2,10 @@
 # This file should be in notebooks/_toc.yml
 
 format: jb-book
-root: index
+
+root: index.md
+
 chapters:
-  - file: index
   - file: your-notebook
 
 # Notes:
