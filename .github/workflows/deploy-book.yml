@@ -33,8 +33,7 @@ jobs:
       # -------------------------------------------------
       - name: Build the book
         run: |
-          jupyter-book build content/
-      #jupyter-book build .
+          jupyter-book build content
 
       # -------------------------------------------------
       - name: Deploy to GitHub Pages
