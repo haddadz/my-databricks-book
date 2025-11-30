@@ -31,6 +31,13 @@ jobs:
           pip install jupyter-book ghp-import
 
       # -------------------------------------------------
+      - name: Debugging
+        run: |
+          pwd
+          ls -R content
+          jupyter-book build "$(pwd)/content" --all
+
+      # -------------------------------------------------
       - name: Build the book
         run: |
           jupyter-book build content --all
