@@ -1,66 +1,23 @@
-# Book settings
-title: Databricks Notebooks
-author: Your Name
-logo: ""
+# -- Book settings --
+title: "My Awesome Databricks Book" # The title of the book
+author: "Z. Had" # The author's name
+copyright: "2026" # Copyright year
 
-# Force re-execution of notebooks on each build
+# -- Execution settings --
+# Control whether notebooks are executed when the book is built
 execute:
-  execute_notebooks: cache  # Options: auto, cache, force, off
-  cache: ""
-  exclude_patterns:
-    - '_build'
-    - 'Thumbs.db'
-    - '.DS_Store'
-  timeout: 600
-  allow_errors: false
+  execute_notebooks: "off" # Set to "off" to prevent execution during the build, "force" to run always
+  timeout: 60 # Maximum time a single cell is allowed to run (in seconds)
 
-# Parse and render settings
-parse:
-  myst_enable_extensions:
-    - colon_fence
-    - dollarmath
-    - linkify
-    - substitution
-    - tasklist
-
-# HTML-specific settings
+# -- HTML output settings --
 html:
-  favicon: ""
-  use_edit_page_button: false
-  use_repository_button: true
-  use_issues_button: true
-  use_multitoc_numbering: true
-  extra_footer: ""
-  google_analytics_id: ""
-  home_page_in_navbar: true
-  baseurl: ""
-  comments:
-    hypothesis: false
-    utterances: false
+  use_repository_button: true # Add a button linking to your source repository
+  use_issues_button: true # Add a button linking to your issue tracker
+  use_edit_page_button: true # Add a button to edit the page content directly on GitHub
 
-# LaTeX settings
-latex:
-  latex_engine: pdflatex
-
-# Launch button settings
-launch_buttons:
-  notebook_interface: classic
-  binderhub_url: ""
-  jupyterhub_url: ""
-  thebe: false
-
-# Repository settings
+# -- Repository settings --
 repository:
-  url: https://github.com/haddadz/my-databricks-book
-  path_to_book: notebooks
-  branch: main
-
-# Sphinx settings
-sphinx:
-  extra_extensions:
-    - sphinx_inline_tabs
-  config:
-    html_theme: sphinx_book_theme
-    html_theme_options:
-      repository_url: https://github.com/haddadz/my-databricks-book
-      use_repository_button: true
+  url: https://github.com/haddadz/my-databricks-book # The URL to your book's repository
+  branch: main # The branch on which the book's source code lives
+  # Path to the directory where the book content is hosted (e.g. content/)
+  path_to_book: "content" 
