@@ -38,7 +38,7 @@ jobs:
       # -------------------------------------------------
       - name: Disable Jekyll
         run: |
-          touch ./_build/html/.nojekyll
+          touch ./content/_build/html/.nojekyll
 
       # -------------------------------------------------
       - name: Deploy to GitHub Pages
